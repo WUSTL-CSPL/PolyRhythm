@@ -1,0 +1,11 @@
+cache,1,6244,1,0,0
+tlb,500,1,1,0,0
+filesystem,1,1,1,0,0
+interrupt,1,1,1,0,0
+adv_disk_io,50,56223,1,0,0
+memory,1,10,1,0,0
+network,55333,0,0,0,0
+memory_ops,1,1,1,0,0
+scheduler,1,1,1,0,0
+spawn,1,1,1,0,0
+ptr_chasing,1,1,1,0,0
