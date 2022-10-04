@@ -60,6 +60,7 @@ char *attack_primitives_name_list[20];
 /*
  * # of thread need to be launch for each resource channel
  */
+int total_num_threads = 0;
 int cache_num_threads = 0;
 int network_num_threads = 0;
 int row_buffer_num_threads = 0;
@@ -168,40 +169,49 @@ int main(int argc, char *argv[]) {
 
         if (strcmp(iter->name, "cache") == 0) {
             cache_num_threads = iter->num_threads;
-
+            total_num_threads += iter->num_threads;
             if (flag_online_profiling) {
                 printf("Init online profiling \n");
                 init_online_profiling_cache_attack(&iter->attack_paras);
             } else {
                 init_cache_attack(&iter->attack_paras);
             }
+            
         } else if (strcmp(iter->name, "network") == 0) {
             init_udp_attack(&iter->attack_paras);
             network_num_threads = iter->num_threads;
-            // printf("network attacks\n");
+            total_num_threads += iter->num_threads;
+            
         } else if (strcmp(iter->name, "row_buffer") == 0) {
             init_memory_row_buffer_attack(&iter->attack_paras);
             row_buffer_num_threads = iter->num_threads;
-            // printf("init row buffer attacks\n");
+            total_num_threads += iter->num_threads;
+            
         } else if (strcmp(iter->name, "tlb") == 0) {
             init_tlb_attack(&iter->attack_paras);
             tlb_num_threads = iter->num_threads;
+            total_num_threads += iter->num_threads;
             if (tlb_num_threads > 1) {
                 printf(
                     "Current TLB attack only support one attack thread per "
                     "instance.\n");
                 tlb_num_threads = 1;
             }
-            // printf("init tlb attacks\n");
+            
         } else if (strcmp(iter->name, "spawn") == 0) {
             spawn_num_threads = iter->num_threads;
+            total_num_threads += iter->num_threads;
+            
         } else if (strcmp(iter->name, "memory") == 0) {
             init_memory_contention_attack(&iter->attack_paras);
             mem_ops_num_threads = iter->num_threads;
+            total_num_threads += iter->num_threads;
+            
         } else if (strcmp(iter->name, "disk_io") == 0) {
             // printf("Init disk IO attack. \n");
             init_advise_disk_io_attack(&iter->attack_paras);
             advise_disk_num_threads = iter->num_threads;
+            total_num_threads += iter->num_threads;
         }
 
         // Attack channels are all set
@@ -216,22 +226,34 @@ int main(int argc, char *argv[]) {
         iter = &attack_channels[i];
     }
 
-    /* Call the sched_next_task N times, N is the total number of attack threads
-     */
-    pthread_t thread_id[10];
-    int call_times;
-
-    /* Launch the attack threads */
-    // Should set the num of threads to launch
-    int dummy_signal;
-
-    for (call_times = 0; call_times < 5; call_times++) {
-        pthread_create(&thread_id[call_times], NULL, (void *)sched_next_tasks,
-                       &dummy_signal);
+    /* If only one attack thread, launch in main thread */
+    if(total_num_threads == 0) {
+        printf("Must specify at least 1 attack thread!\n");
+        return EXIT_FAILURE;
     }
+    
+    else if(total_num_threads == 1) {
+    	sched_next_tasks(0);
+    }
+    
+    /* Otherwise, call the sched_next_task N times,
+       N is the total number of attack threads */
+    else {
+        pthread_t thread_id[10];
+        int call_times;
 
-    /* Spin the main process*/
-    pthread_join(thread_id[0], NULL);
+        /* Launch the attack threads */
+        // Should set the num of threads to launch
+        int dummy_signal;
 
+        for (call_times = 0; call_times < 5; call_times++) {
+            pthread_create(&thread_id[call_times], NULL, (void *)sched_next_tasks,
+                           &dummy_signal);
+        }
+
+        /* Spin the main process*/
+        pthread_join(thread_id[0], NULL);
+    }
+    
     return EXIT_SUCCESS;
 }
