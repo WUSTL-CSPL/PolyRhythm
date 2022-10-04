@@ -108,7 +108,10 @@ class Genetic():
 
             profilings = launch_victim_one_run(self.channel, self.is_in_VM)
 
-            primary_score = profilings['cycles'] / 10e8
+            if self.is_in_VM:
+                primary_score = profilings['cycles'] / 10e8
+            else:
+                primary_score = profilings['task-clock'] / 10e8
             primary_scores.append(primary_score)
             
             time.sleep(0.5)
@@ -116,27 +119,6 @@ class Genetic():
         self.baseline_score = statistics.mean(primary_scores)
 
         # print("Baseline Score: ", self.baseline_score)
-
-    def init_baseline_score_for_VM(self):
-        """Get baseline score without attackers.
-           Baseline score is obtained by run victim task in isolation
-        """
-        primary_scores = []
-        secondary_scores = []
-        # Try ten times to remove the outliers produced by PMUs
-        for i in range(10):
-
-            profilings = launch_victim_one_run(self.channel, self.is_in_VM)
-
-            primary_score = profilings['task-clock'] / 10e8
-            primary_scores.append(primary_score)
-            
-            time.sleep(0.5)
-        
-        self.baseline_score = statistics.mean(primary_scores)
-
-        # print("Baseline Score: ", self.baseline_score)
-
 
     # get fitness score according to the defined objective function
     def get_fitness_score(self):
@@ -311,8 +293,6 @@ class Genetic():
             except:
                 # We are in a platform that some hardware events are not supported
                 self.is_in_VM = True
-                self.init_baseline_score_for_VM()
-                # break
 
         # Repeat the loop until reaching the maximum iterations or the scores no longer changes
         while itr <= self.max_iters and score_diff > self.stop_thres:

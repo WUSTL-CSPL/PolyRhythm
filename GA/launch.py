@@ -157,13 +157,14 @@ def launch_attack_one_run(channel, param_1, param_2, param_3, param_4, n_att_thr
         perf_cmd = construct_perf_cmd(put_cmd)
     else:
         perf_cmd = construct_perf_cmd_for_VM(put_cmd) ## Only for VM
-    
+    # print(perf_cmd)
+
     # Execute the perf command and get its profiling results
     output = subprocess.run(perf_cmd, shell=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, bufsize=1)
-    # Print("Output : ", output)
+    # print("Output : ", output)
     events = parse_perf_output(output)
-    # Print("Events : ", events)
+    # print("Events : ", events)
     return events
 
 def launch_victim_one_run(channel, is_VM):
@@ -175,14 +176,14 @@ def launch_victim_one_run(channel, is_VM):
         perf_cmd = construct_perf_cmd(put_cmd)
     else:
         perf_cmd = construct_perf_cmd_for_VM(put_cmd) ## Only for VM
-    
-    print(perf_cmd)
+    # print(perf_cmd)
+
     # Execute the perf command and get its profiling results
     output = subprocess.run(perf_cmd, shell=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, bufsize=1)
     print("Output : ", output)
     events = parse_perf_output(output)
-    # Print("Events : ", events)
+    # print("Events : ", events)
     return events
 
 def kill_attack_proc():
