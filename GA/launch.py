@@ -82,8 +82,8 @@ def construct_perf_cmd(put_cmd):
     events.extend(['cache-misses']) # LLC (demand by instructions, exclude prefetcher read/write)
     events_str = ','.join(events)
     # Construct perf command
-    # perf_cmd = 'perf stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
-    perf_cmd = 'perf_4.9 stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
+    perf_cmd = 'perf stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
+    # perf_cmd = 'perf_4.9 stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
     # Log perf command
     print(pfmon_color.blue + perf_cmd + pfmon_color.reset)
     return perf_cmd
@@ -176,10 +176,11 @@ def launch_victim_one_run(channel, is_VM):
     else:
         perf_cmd = construct_perf_cmd_for_VM(put_cmd) ## Only for VM
     
+    print(perf_cmd)
     # Execute the perf command and get its profiling results
     output = subprocess.run(perf_cmd, shell=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, bufsize=1)
-    # Print("Output : ", output)
+    print("Output : ", output)
     events = parse_perf_output(output)
     # Print("Events : ", events)
     return events
