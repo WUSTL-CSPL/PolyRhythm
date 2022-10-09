@@ -3,22 +3,23 @@
 /**
  *  @brief Parse the command line
  *  The options format is L
- *  ./polyrythm attack_channel  num_threads para1 para2 para3 para4
- *  e.g. : ./polyrythm cache 2    1    835    0      0
+ *  ./polyrythm attack_channel  num_threads para1 para2 para3 para4 online_flag
+ *  e.g. :
+ *  ./polyrythm cache           2           1     835   0     0     0
  */
 int parse_options(int argc, char *argv[],
                   attack_channel_info_t attack_channels[]) {
     int optind;
     char *tmp_str_end;
 
-    if ((argc - 1) % 6 != 0 &&
-        (argc - 1) % 6 !=
-            1)  // There is a parameter that enables online profiling
+    const int NUM_ARGS = (NUM_PARAMS + 3); //Each channel has 3 arguments (attack_channel num_threads online_flag) + params
+    if ((argc - 1) % NUM_ARGS != 0)
     {
         printf("Parameters errors ! Please follow the pattern: \n");
         printf(
-            "./polyrhythm <channel> <num_thread> <para1> <para2> <para3> "
-            "<para4> <online_flag> \n");
+            "./polyrhythm <channel> <num_thread> <para1> <para2> <para3>"
+            "             <para4> <online_flag> \n"
+        );
         return EXIT_FAILURE;
     }
 
