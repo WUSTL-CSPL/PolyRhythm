@@ -35,7 +35,7 @@ if __name__ == "__main__":
     )
 
     
-    # Optinal channel argument
+    # Optional channel argument
     parser.add_argument('--channel', type=str,
                     help='The target channel to tune {cache,network,row_buffer,disk_io,tlb}')
 
@@ -43,10 +43,17 @@ if __name__ == "__main__":
     parser.add_argument('--ncores', type=int,
                     help='The number of cores on the target platform', default=4)
 
+    # Optional argument: which perf to use, defaults to "perf"
+    parser.add_argument('--perf', type=str,
+                    help='The name of the perf binary to use', default="perf")
+
     # Parse arguments
     args = parser.parse_args()
     fix_p1 = False ## Parse these two arguments from command line
     fix_p2 = False
+
+    if args.perf is not None:
+        global_params.perf_bin = args.perf
 
     if args.channel is not None:
         

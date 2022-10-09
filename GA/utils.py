@@ -41,3 +41,6 @@ class pfmon_color:
     magenta ="\x1b[35m"
     cyan    ="\x1b[36m"
     reset   ="\x1b[0m"
+
+class global_params:
+    perf_bin = "perf"

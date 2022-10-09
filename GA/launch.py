@@ -82,8 +82,7 @@ def construct_perf_cmd(put_cmd):
     events.extend(['cache-misses']) # LLC (demand by instructions, exclude prefetcher read/write)
     events_str = ','.join(events)
     # Construct perf command
-    perf_cmd = 'perf stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
-    # perf_cmd = 'perf_4.9 stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
+    perf_cmd = '%s stat -a -x, -e %s -- %s' % (global_params.perf_bin, events_str, put_cmd)
     # Log perf command
     print(pfmon_color.blue + perf_cmd + pfmon_color.reset)
     return perf_cmd
