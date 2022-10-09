@@ -289,22 +289,49 @@ class Genetic():
         
         if not self.is_in_VM:
             try:
+                print("\n\n************\nInitializing baseline score\nIn VM", self.is_in_VM, "\n************\n\n")
                 self.init_baseline_score()
             except:
                 # We are in a platform that some hardware events are not supported
                 self.is_in_VM = True
+                try:
+                    print("\n\n************\nInitializing baseline score for VM\nIn VM", self.is_in_VM, "\n************\n\n")
+                    self.init_baseline_score()
+                except:
+                    print("Could not initialize baseline scores for GA.\n"
+                          "Make sure you can run perf with: ", global_params.perf_bin, "\n"
+                          "Make sure perf events are enabled for all users:\n"
+                          "$ sudo -i\n"
+                          "$ echo -1 > /proc/sys/kernel/perf_event_paranoid")
+                    exit()
 
         # Repeat the loop until reaching the maximum iterations or the scores no longer changes
         while itr <= self.max_iters and score_diff > self.stop_thres:
 
             if not self.is_in_VM:
                 try:
+                    print("\n\n************\nGetting fitness score, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
                     pop_scores = self.get_fitness_score()
                 except:
                     # We are in a platform that some hardware events are not supported
                     self.is_in_VM = True
-                    continue
+
+            if self.is_in_VM:
+                    try:                        
+                        print("\n\n************\nGetting fitness score for VM, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
+                        pop_scores = self.get_fitness_score_for_VM() # For VM
+                    except:
+                        print("Could not get scores for GA.\n"
+                            "Make sure you can run perf with: ", global_params.perf_bin, "\n"
+                            "Make sure perf events are enabled for all users:\n"
+                            "$ sudo -i\n"
+                            "$ echo -1 > /proc/sys/kernel/perf_event_paranoid")
+                        exit()
+
+
+
             else:
+                print("\n\n************\nGetting fitness score for VM, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
                 pop_scores = self.get_fitness_score_for_VM() # For VM
             
             # Sort and elite the population according to the fitness scores
