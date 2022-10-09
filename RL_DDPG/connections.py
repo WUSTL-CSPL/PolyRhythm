@@ -1,7 +1,7 @@
 
 import socket
 
-def init_connection():
+def init_connection(target_ip):
     '''Connect to the testing platform
     '''
     sok = socket.socket()
@@ -9,7 +9,7 @@ def init_connection():
 
     port_rx = 2223
     try:
-        sok.connect(('10.235.235.2', port_rx))
+        sok.connect((target_ip, port_rx))
     except socket.timeout:
         print("Connection timeout")
         return sok, -1

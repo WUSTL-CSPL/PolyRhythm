@@ -44,7 +44,7 @@ def init_connection():
     '''
     sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     port = 2223
-    sok.bind(("10.235.235.2", port))
+    sok.bind(("0.0.0.0", port))
     sok.listen(5)
     print("Waiting for any incoming connection.")
     conn, _ = sok.accept()

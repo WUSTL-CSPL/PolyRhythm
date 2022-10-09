@@ -15,7 +15,7 @@ NUM_RESOURCES = 5
 
 class Environment():
     """Environment initialization function"""
-    def __init__(self, is_attack = False):
+    def __init__(self, target_ip = '127.0.0.1', is_attack = False):
         #anything needs to be initilized
         print("Initialization!")
         self.action_dic = {
@@ -48,6 +48,8 @@ class Environment():
             # 'filesys_count': 0
         }
 
+        self.target_ip = target_ip
+
         self.is_attack = is_attack
         ### Attack environment
         if self.is_attack:
@@ -58,7 +60,7 @@ class Environment():
             self.state_memory = sysv_ipc.SharedMemory(666688) 
         ### Traning environment
         else:
-            self.socket, ret  = connections.init_connection()
+            self.socket, ret  = connections.init_connection(self.target_ip)
 
             if ret != 0:
                 print("Estabilish connection failed")
