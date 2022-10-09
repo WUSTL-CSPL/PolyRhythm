@@ -287,15 +287,17 @@ class Genetic():
         itr = 1
         prev_score = 0
         
+
+        # Initialize baseline scores
         if not self.is_in_VM:
             try:
-                print("\n\n************\nInitializing baseline score\nIn VM", self.is_in_VM, "\n************\n\n")
+                # print("\n\n************\nInitializing baseline score\nIn VM", self.is_in_VM, "\n************\n\n")
                 self.init_baseline_score()
             except:
                 # We are in a platform that some hardware events are not supported
                 self.is_in_VM = True
                 try:
-                    print("\n\n************\nInitializing baseline score for VM\nIn VM", self.is_in_VM, "\n************\n\n")
+                    # print("\n\n************\nInitializing baseline score for VM\nIn VM", self.is_in_VM, "\n************\n\n")
                     self.init_baseline_score()
                 except:
                     print("Could not initialize baseline scores for GA.\n"
@@ -308,9 +310,10 @@ class Genetic():
         # Repeat the loop until reaching the maximum iterations or the scores no longer changes
         while itr <= self.max_iters and score_diff > self.stop_thres:
 
+            # Get scores for this iteration
             if not self.is_in_VM:
                 try:
-                    print("\n\n************\nGetting fitness score, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
+                    # print("\n\n************\nGetting fitness score, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
                     pop_scores = self.get_fitness_score()
                 except:
                     # We are in a platform that some hardware events are not supported
@@ -318,7 +321,7 @@ class Genetic():
 
             if self.is_in_VM:
                     try:                        
-                        print("\n\n************\nGetting fitness score for VM, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
+                        # print("\n\n************\nGetting fitness score for VM, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
                         pop_scores = self.get_fitness_score_for_VM() # For VM
                     except:
                         print("Could not get scores for GA.\n"
@@ -327,12 +330,6 @@ class Genetic():
                             "$ sudo -i\n"
                             "$ echo -1 > /proc/sys/kernel/perf_event_paranoid")
                         exit()
-
-
-
-            else:
-                print("\n\n************\nGetting fitness score for VM, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
-                pop_scores = self.get_fitness_score_for_VM() # For VM
             
             # Sort and elite the population according to the fitness scores
             elite_ind = np.argsort(pop_scores)[-self.elite_size:]
