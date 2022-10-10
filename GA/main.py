@@ -22,6 +22,28 @@ def signal_handler(sig, frame):
     print("PolyRhythm Killed.")
     sys.exit(0)
 
+def run_channel(channel, params_file = None):
+    init_param = np.array(init_params[channel])
+
+    ### Init Genetic Algorithm
+    g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
+
+    ### Open log file to store optimal parameters 
+    log_file = channel + "run_log.txt"
+    with open(log_file, 'w') as log:
+        ### Start GA to tune
+        parameters, success = g.run(log=log)
+        print(parameters[0] + "," + parameters[1] + "," + parameters[2] + "," + parameters[3])
+
+        if params_file is not None:
+            params_file.write(f"{channel},{parameters[0]},{parameters[1]},"
+                              f"{parameters[2]},{parameters[3]},0")
+
+        if success:
+            print("Find best parameter!")
+        else:
+            print("Not a total success.")
+
 
 if __name__ == "__main__":
 
@@ -47,6 +69,10 @@ if __name__ == "__main__":
     parser.add_argument('--perf', type=str,
                     help='The name of the perf binary to use', default="perf")
 
+    # Optional argument: parameter file to output
+    parser.add_argument('--params', type=str,
+                    help='The name of the params file to output')
+
     # Parse arguments
     args = parser.parse_args()
     fix_p1 = False ## Parse these two arguments from command line
@@ -54,43 +80,15 @@ if __name__ == "__main__":
 
     if args.perf is not None:
         global_params.perf_bin = args.perf
+    
+    params_file = None
+    if args.params is not None:
+        params_file = open(args.params, 'w')
+        if params_file is None:
+            print("Could not open", args.params, "for writing")        
 
-    if args.channel is not None:
-        
-        init_param = np.array(init_params[args.channel])
-        
-        ### Init Genetic Algorithm
-        g = Genetic(args.channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
-
-        ### Open log file to store optimal parameters 
-        log_file = "run_log.txt"
-        with open(log_file, 'w') as log:
-            ### Start GA to tune
-            parameters, success = g.run(log=log)
-            print(parameters[0] + "," + parameters[1] + "," + parameters[2] + "," + parameters[3])
-
-            if success:
-                print("Find best parameter!")
-            else:
-                print("Not a total success.")
-
-
+    if args.channel is not None:       
+        run_channel(args.channel, params_file)
     else: ### We automatically tune all channels
         for channel in init_params:
-            init_param = np.array(init_params[channel])
-            ### Init Genetic Algorithm
-            g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
-
-            ### Open log file to store optimal parameters 
-            log_file = channel + "run_log.txt"
-            with open(log_file, 'w') as log:
-                ### Start GA to tune
-                parameters, success = g.run(log=log)
-                print(parameters[0] + "," + parameters[1] + "," + parameters[2] + "," + parameters[3])
-
-                if success:
-                    print("Find best parameter!")
-                else:
-                    print("Not a total success.")
-
-    
+            run_channel(channel, params_file)
