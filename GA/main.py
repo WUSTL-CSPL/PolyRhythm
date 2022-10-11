@@ -33,14 +33,14 @@ def run_channel(channel, params_file = None):
     with open(log_file, 'w') as log:
         ### Start GA to tune
         parameters, success = g.run(log=log)
-        print(parameters[0] + "," + parameters[1] + "," + parameters[2] + "," + parameters[3])
+        print(f"{parameters[0]},{parameters[1]},{parameters[2]},{parameters[3]}")
 
         if params_file is not None:
             params_file.write(f"{channel},{parameters[0]},{parameters[1]},"
-                              f"{parameters[2]},{parameters[3]},0")
+                              f"{parameters[2]},{parameters[3]},0\n")
 
         if success:
-            print("Find best parameter!")
+            print("Found best parameter!")
         else:
             print("Not a total success.")
 
@@ -49,8 +49,8 @@ if __name__ == "__main__":
 
     ### Set up a signal handler to catch Keyboard Interrupt Signal
     signal.signal(signal.SIGINT, signal_handler)
-    # print('Registered Singal')
-
+    # print('Registered Signal')
+    
     # Initialize the parser
     parser = argparse.ArgumentParser(
         description="Attack parameter tuning script."
