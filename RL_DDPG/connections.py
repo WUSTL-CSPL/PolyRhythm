@@ -1,5 +1,6 @@
 
 import socket
+import errno
 
 def init_connection(target_ip):
     '''Connect to the testing platform
@@ -13,7 +14,17 @@ def init_connection(target_ip):
     except socket.timeout:
         print("Connection timeout")
         return sok, -1
-    print("Connect to the testing platform.")
+    except socket.error as err:
+        if err.errno == errno.ECONNREFUSED:
+            print(f"Connection refused on {target_ip}:{port_rx}")
+            return sok, -1
+        else :
+            raise err
+    except:
+        print("Socket connection failed, unknown reason")
+        return sok, -1
+
+    print("Connection to the testing platform established.")
     return sok, 0
 
 def send_action(sok, action_list):
