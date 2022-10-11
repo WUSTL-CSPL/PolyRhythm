@@ -109,9 +109,9 @@ class Genetic():
             profilings = launch_victim_one_run(self.channel, self.is_in_VM)
 
             if self.is_in_VM:
-                primary_score = profilings['cycles'] / 10e8
-            else:
                 primary_score = profilings['task-clock'] / 10e8
+            else:
+                primary_score = profilings['cycles'] / 10e8
             primary_scores.append(primary_score)
             
             time.sleep(0.5)
