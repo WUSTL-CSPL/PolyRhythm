@@ -95,7 +95,7 @@ def construct_perf_cmd_for_VM(put_cmd):
     events = ['task-clock'] # Number of retired instructions, number of cycles (in real frequency)
     events_str = ','.join(events)
     # Construct perf command
-    perf_cmd = 'perf stat -a -x, -e %s -- %s' % (events_str, put_cmd)
+    perf_cmd = '%s stat -a -x, -e %s -- %s' % (global_params.perf_bin, events_str, put_cmd)
     # Log perf command
     print(pfmon_color.blue + perf_cmd + pfmon_color.reset)
     return perf_cmd
