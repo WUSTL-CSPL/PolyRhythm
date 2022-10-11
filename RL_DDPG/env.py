@@ -63,7 +63,7 @@ class Environment():
             self.socket, ret  = connections.init_connection(self.target_ip)
 
             if ret != 0:
-                print("Estabilish connection failed")
+                print("Establishing connection failed")
                 exit(-1)
         
         ### Init the shared memory 

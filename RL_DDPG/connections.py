@@ -1,6 +1,5 @@
 
 import socket
-import errno
 
 def init_connection(target_ip):
     '''Connect to the testing platform
@@ -14,14 +13,10 @@ def init_connection(target_ip):
     except socket.timeout:
         print("Connection timeout")
         return sok, -1
-    except socket.error as err:
-        if err.errno == errno.ECONNREFUSED:
-            print(f"Connection refused on {target_ip}:{port_rx}")
-            return sok, -1
-        else :
-            raise err
+    except socket.error:
+        print(f"Connection refused on {target_ip}:{port_rx}")
+        return sok, -1
     except:
-        print("Socket connection failed, unknown reason")
         return sok, -1
 
     print("Connection to the testing platform established.")
