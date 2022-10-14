@@ -26,7 +26,7 @@ def run_channel(channel, params_file = None):
     init_param = np.array(init_params[channel])
 
     ### Init Genetic Algorithm
-    g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
+    g = Genetic(channel, init_param, ncores = global_params.ncores, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
 
     ### Open log file to store optimal parameters 
     log_file = channel + "run_log.txt"
@@ -80,6 +80,12 @@ if __name__ == "__main__":
 
     if args.perf is not None:
         global_params.perf_bin = args.perf
+
+    if args.ncores is not None:
+        global_params.ncores = int(args.ncores)
+        if global_params.ncores < 1 :
+            print("Specified --ncores", args.ncores, "is not valid!")
+            exit()
     
     params_file = None
     if args.params is not None:

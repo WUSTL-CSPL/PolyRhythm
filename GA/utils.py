@@ -44,3 +44,4 @@ class pfmon_color:
 
 class global_params:
     perf_bin = "perf"
+    ncores = 4
