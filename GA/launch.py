@@ -9,6 +9,16 @@ from genetic import *
 import time
 from utils import *
 
+### Global variable
+perf_name = 'perf'
+
+def set_perf_binary_name(name):
+    ## For pi, it would be perf_4.9
+    global perf_name 
+    perf_name = name
+    print(pfmon_color.yellow + "Set perf command name: ", perf_name + pfmon_color.reset)
+
+
 def construct_enemy_cmd(enemy_dict, channel, para_1, para_2, para_3, para_4):
     '''Contruct a cmd that launches PolyRhythm'''
 
@@ -82,7 +92,7 @@ def construct_perf_cmd(put_cmd):
     events.extend(['cache-misses']) # LLC (demand by instructions, exclude prefetcher read/write)
     events_str = ','.join(events)
     # Construct perf command
-    perf_cmd = 'perf stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
+    perf_cmd = perf_name + ' stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
     # perf_cmd = 'perf_4.9 stat -a -x, -e %s -- %s' % ( events_str, put_cmd)
     # Log perf command
     print(pfmon_color.blue + perf_cmd + pfmon_color.reset)
@@ -96,7 +106,7 @@ def construct_perf_cmd_for_VM(put_cmd):
     events = ['task-clock'] # Number of retired instructions, number of cycles (in real frequency)
     events_str = ','.join(events)
     # Construct perf command
-    perf_cmd = 'perf stat -a -x, -e %s -- %s' % (events_str, put_cmd)
+    perf_cmd = perf_name + ' stat -a -x, -e %s -- %s' % (events_str, put_cmd)
     # Log perf command
     print(pfmon_color.blue + perf_cmd + pfmon_color.reset)
     return perf_cmd
@@ -157,13 +167,37 @@ def launch_attack_one_run(channel, param_1, param_2, param_3, param_4, n_att_thr
         perf_cmd = construct_perf_cmd(put_cmd)
     else:
         perf_cmd = construct_perf_cmd_for_VM(put_cmd) ## Only for VM
-    # print(perf_cmd)
+    # print(perf_cmd)  
+
+    # Set the command line execution environment as the same of OS
+    os_env = os.environ.copy()
+    os_env["PATH"] = "/usr/sbin:/sbin:" + os_env["PATH"]
+
 
     # Execute the perf command and get its profiling results
     output = subprocess.run(perf_cmd, shell=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, bufsize=1)
-    # print("Output : ", output)
+                            stderr=subprocess.PIPE, bufsize=1, env=os_env)
+
+    # print("output: ", output) 
     events = parse_perf_output(output)
+
+
+    # Try to access to results to make sure perf launched successfully
+    if not is_VM:
+        test_event_name = "cycles"
+    else:
+        test_event_name = "task-clock"
+
+    try:
+        event_count = events[test_event_name]
+    except:
+        print(pfmon_color.red + "Launch command with perf failed !" + pfmon_color.reset)
+        err_msg = output.stderr.decode('utf-8')
+        print(pfmon_color.red + "Error message: ", err_msg + pfmon_color.reset)
+
+        # If this is on RPi3, try to use perf_4.9
+        perf_name = 'perf_4.9'
+
     # print("Events : ", events)
     return events
 
@@ -181,10 +215,25 @@ def launch_victim_one_run(channel, is_VM):
     # Execute the perf command and get its profiling results
     output = subprocess.run(perf_cmd, shell=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, bufsize=1)
-    print("Output : ", output)
+    
     events = parse_perf_output(output)
-    # print("Events : ", events)
+
+    # Try to access to results to make sure perf launched successfully
+    if not is_VM:
+        test_event_name = "cycles"
+    else:
+        test_event_name = "task-clock"
+
+    try:
+        event_count = events[test_event_name]
+    except:
+        print("Events", )
+        print(pfmon_color.red + "Launch command with perf failed !" + pfmon_color.reset)
+        err_msg = output.stderr.decode('utf-8')
+        print(pfmon_color.red + "Error message: ", err_msg + pfmon_color.reset)
+    
     return events
+
 
 def kill_attack_proc():
     kill_cmd = 'pkill polyrhythm'
