@@ -11,12 +11,20 @@ from utils import *
 
 ### Global variable
 perf_name = 'perf'
+ncore = 4
 
 def set_perf_binary_name(name):
     ## For pi, it would be perf_4.9
     global perf_name 
     perf_name = name
     print(pfmon_color.yellow + "Set perf command name: ", perf_name + pfmon_color.reset)
+
+
+def set_number_of_cores(num_core):
+    ## For pi, it would be perf_4.9
+    global ncore 
+    ncore = num_core
+    print(pfmon_color.yellow + "Set number of cores on target machine: ", str(ncore) + pfmon_color.reset)
 
 
 def construct_enemy_cmd(enemy_dict, channel, para_1, para_2, para_3, para_4):

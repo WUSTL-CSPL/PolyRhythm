@@ -111,6 +111,7 @@ class Genetic():
         set_perf_binary_name(perf_name)                     # Some platform have different perf versions
 
 
+
     def init_baseline_score(self):
         """Get baseline score without attackers.
            Baseline score is obtained by run victim task in isolation

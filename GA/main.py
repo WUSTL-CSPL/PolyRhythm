@@ -64,7 +64,7 @@ if __name__ == "__main__":
         init_param = np.array(init_params[args.channel])
         
         ### Init Genetic Algorithm
-        g = Genetic(args.channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2, perf_name=args.perfname, weight_mode=args.weightmode)
+        g = Genetic(args.channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2, perf_name=args.perfname, weight_mode=args.weightmode, ncores=args.ncores)
 
         ### Open log file to store optimal parameters 
         log_file = "run_log.txt"
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
             init_param = np.array(init_params[channel])
             ### Init Genetic Algorithm
-            g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2, perf_name=args.perfname, weight_mode=args.weightmode)
+            g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2, perf_name=args.perfname, weight_mode=args.weightmode, ncores=args.ncores)
 
             ### Open log file to store optimal parameters 
             log_file = channel + "run_log.txt"
