@@ -55,7 +55,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Attack parameter tuning script."
     )
-
     
     # Optional channel argument
     parser.add_argument('--channel', type=str,
@@ -65,13 +64,18 @@ if __name__ == "__main__":
     parser.add_argument('--ncores', type=int,
                     help='The number of cores on the target platform', default=4)
 
-    # Optional argument: which perf to use, defaults to "perf"
-    parser.add_argument('--perf', type=str,
-                    help='The name of the perf binary to use', default="perf")
-
     # Optional argument: parameter file to output
     parser.add_argument('--params', type=str,
                     help='The name of the params file to output')
+
+    # Optional argument: perf_binary name
+    parser.add_argument('--perfname', type=str,
+                    help='The perf command name: e.g., perf, perf_4.9, perf_5.10', default='perf')
+
+    # Optional argument: perf_binary name
+    parser.add_argument('--weightmode', type=int,
+                    help='The weighting method', default=2)
+    
 
     # Parse arguments
     args = parser.parse_args()
@@ -87,6 +91,7 @@ if __name__ == "__main__":
         if params_file is None:
             print("Could not open", args.params, "for writing")        
 
+    ### Start the tuning
     if args.channel is not None:       
         run_channel(args.channel, params_file)
     else: ### We automatically tune all channels
