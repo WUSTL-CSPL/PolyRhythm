@@ -4,7 +4,13 @@ import math
 import time
  
 import statistics
-#------output best crafted parameter by genetic algorithm----------
+
+#------Output best crafted parameter by genetic algorithm----------
+
+from enum import Enum
+class WeightMode(Enum):
+    VARIATION = 1
+    SENSITIVITY = 2
 
 def get_new_pop(elite_pop, elite_pop_scores, pop_size):    
     """Crossover elited parents to obtain next generations.
@@ -60,7 +66,7 @@ def mutate_pop(pop, mutation_p, noise_stdev, elite_pop):
     return new_pop
 
 class Genetic():
-    def __init__(self, channel, init_param, ncores = 4, is_param1_fixed = False, is_param2_fixed = False):
+    def __init__(self, channel, init_param, ncores = 4, is_param1_fixed = False, is_param2_fixed = False, perf_name='perf', weight_mode=2):
         self.pop_size = 10                                 # total population size in each round 
         self.elite_size = 10                               # elite population size in each round
         self.mutation_p = 0.01                             # mutation probability
@@ -80,7 +86,7 @@ class Genetic():
                 init_param[i] = 0
         
         self.mu = 0.9                                       # momentum mutation parameter
-        self.alpha = 0.01                                   # momentum mutation weight parameter
+        self.alpha = 0.1                                   # momentum mutation weight parameter
         self.max_iters = 3000                               # maximum iterations
         self.stop_thres = 1e-2                              # stopping criteria of score changes
         self.pop = np.expand_dims(init_param, axis=0)        
@@ -95,7 +101,16 @@ class Genetic():
         self.ncores = ncores                                # number of cores on the target platform
         self.channel = channel                              # Name of resource channel to tune
  
-        self.baseline_score = 0                             # Baseline score for normalization
+        self.baseline_score = 1                             # Baseline score for normalization
+        self.baseline_primary_score = 1
+        self.baseline_secondary_score = 1
+
+        self.weight_mode = WeightMode.SENSITIVITY
+        # self.weight_mode = weight_mode
+        
+        set_perf_binary_name(perf_name)                     # Some platform have different perf versions
+
+
 
     def init_baseline_score(self):
         """Get baseline score without attackers.
@@ -103,22 +118,35 @@ class Genetic():
         """
         primary_scores = []
         secondary_scores = []
-        # Try ten times to remove the outliers produced by PMUs
+
+        # Try ten times to get the baseline cycles, cache misses ... 
         for i in range(10):
 
             profilings = launch_victim_one_run(self.channel, self.is_in_VM)
 
-            if self.is_in_VM:
-                primary_score = profilings['task-clock'] / 10e8
+            if not self.is_in_VM:
+                primary_score = profilings['cycles']                
+                if self.channel == "cache":
+                    secondary_score = profilings['cache-misses']
+                elif self.channel == "row_buffer" or self.channel == "memory":
+                    secondary_score = profilings['bus-cycles']
+                else:
+                    secondary_score = profilings['cycles']
+
             else:
-                primary_score = profilings['cycles'] / 10e8
-            primary_scores.append(primary_score)
+                primary_score = profilings['task-clock']
             
+            primary_scores.append(primary_score)
+            secondary_scores.append(secondary_score)
+
+            # Sleep for reducing residual impact on stateful resources.
             time.sleep(0.5)
         
         self.baseline_score = statistics.mean(primary_scores)
+        self.baseline_primary_score = statistics.mean(primary_scores)
+        self.baseline_secondary_score = statistics.mean(secondary_scores)
 
-        # print("Baseline Score: ", self.baseline_score)
+        print(pfmon_color.green + "Baseline Score: ", str(self.baseline_score) + pfmon_color.reset)
 
     # get fitness score according to the defined objective function
     def get_fitness_score(self):
@@ -128,8 +156,8 @@ class Genetic():
         score_list = []
         for i in range(self.pop_size):
 
-            instructions_scores = []
-            cache_misses_scores = []
+            primary_scores = []
+            secondary_scores = []
 
             # Run one round of attack with corresponding parameters, store the system parameters in variable
             # Try ten times to remove the outliers produced by PMUs
@@ -151,25 +179,33 @@ class Genetic():
                 # Kill PolyRhythm process to restart the system status
                 kill_attack_proc()
 
-                print("Profiling : ", profilings)
+                # print("Profiling : ", profilings)
                 
                 '''
                 Note: since Virtualbox machines do not support most of hardware events
                 We switch to use 'task-clock' as the feedback events in GA instead of the events we mentioned in our paper, such as cache-misses
                 '''
                 # Get scores
-                #instructions_score = profilings['instructions'] / 10e8
-                instructions_score = profilings['cycles'] / 10e8
+                #primary_score = profilings['instructions'] / 10e8
+                primary_score = profilings['cycles'] / self.baseline_primary_score
                 # bus_cycles_score = profilings['bus-cycles'] / 10e7
-                cache_misses_score = profilings['cache-misses'] / 10e5
+                if self.channel == 'cache':
+                    secondary_score = profilings['cache-misses'] / self.baseline_secondary_score
 
-                instructions_scores.append(instructions_score)
-                cache_misses_scores.append(cache_misses_score)
+                primary_scores.append(primary_score)
+                secondary_scores.append(secondary_score)
 
-            inst_var = statistics.variance(instructions_scores)
-            cache_var = statistics.variance(cache_misses_scores)
-            # print("inst variance : ", inst_var)
-            # print("cache variance : ", cache_var)
+            prim_var = statistics.variance(primary_scores)
+            second_var = statistics.variance(secondary_scores)
+
+            ### Try to minimize the variation to 1/10, we get the threashold here
+            prim_threshold = prim_var / 10
+            second_threshold = second_var / 10
+
+            var_weight = prim_var / second_var
+            print("inst variance : ", prim_var)
+            print("cache variance : ", second_var)
+            print("Variation weight : ", var_weight)
 
 
             ''' We analyze the sensitivity of hardware events.
@@ -180,45 +216,56 @@ class Genetic():
             max_index = 0
             min_index = 0
 
-            max_inst_score = max(instructions_scores)
-            max_indexs = [i for i, s in enumerate(instructions_scores) if max_inst_score == s]
+            max_inst_score = max(primary_scores)
+            max_indexs = [i for i, s in enumerate(primary_scores) if max_inst_score == s]
             if max_indexs: # max list is no empty
                 max_index = max_indexs[0]
 
-            min_inst_score = min(instructions_scores)
-            min_indexs = [i for i, s in enumerate(instructions_scores) if min_inst_score == s]
+            min_inst_score = min(primary_scores)
+            min_indexs = [i for i, s in enumerate(primary_scores) if min_inst_score == s]
             if min_indexs: # min list is no empty
                 min_index = min_indexs[0]
 
-            instruction_ratio = instructions_scores[max_index] / instructions_scores[min_index]
-            cache_ratio = cache_misses_scores[max_index] / cache_misses_scores[min_index]
+            instruction_ratio = primary_scores[max_index] / primary_scores[min_index]
+            cache_ratio = secondary_scores[max_index] / secondary_scores[min_index]
 
-            weight = cache_ratio / instruction_ratio
-            print("Weight : ", weight)
+            sen_weight = cache_ratio / instruction_ratio
+            print("Sensitive Weight : ", sen_weight)
             ### Remove the outliers until the variance is below a threshold
-            while inst_var > 10e-5 and len(instructions_scores) > 2:
-                instructions_scores.remove(max(instructions_scores))
-                instructions_scores.remove(min(instructions_scores))
-                inst_var = statistics.variance(instructions_scores)
-            while cache_var > 10e-5 and len(cache_misses_scores) > 2:
-                cache_misses_scores.remove(max(cache_misses_scores))
-                cache_misses_scores.remove(min(cache_misses_scores))
-                cache_var = statistics.variance(cache_misses_scores)
+            while prim_var > prim_threshold and len(primary_scores) > 2:
+                primary_scores.remove(max(primary_scores))
+                primary_scores.remove(min(primary_scores))
+                prim_var = statistics.variance(primary_scores)
+            while second_var > second_threshold and len(secondary_scores) > 2:
+                secondary_scores.remove(max(secondary_scores))
+                secondary_scores.remove(min(secondary_scores))
+                second_var = statistics.variance(secondary_scores)
 
             #### Consider drop this result that if the variaton is too large
-            inst_var = statistics.variance(instructions_scores)
-            cache_var = statistics.variance(cache_misses_scores)
+            prim_var = statistics.variance(primary_scores)
+            second_var = statistics.variance(secondary_scores)
 
             ### Calculate the average score
-            ave_instructions_score = statistics.mean(instructions_scores)
-            ave_cache_misses_score = statistics.mean(cache_misses_scores)
+            ave_primary_score = statistics.mean(primary_scores)
+            ave_secondary_score = statistics.mean(secondary_scores)
+
 
             ### Get the final score
-            raw_score = instructions_score + weight * cache_misses_score
-            ### Normalize the score
-            score = raw_score / self.baseline_score
 
-            score_list.append(cache_misses_score)
+            ### We have two modes
+            if self.weight_mode == WeightMode.SENSITIVITY:
+                raw_score = primary_score + sen_weight * secondary_score
+            elif self.weight_mode == WeightMode.VARIATION:
+                raw_score = primary_score + var_weight * secondary_score
+            
+            ### Normalize the score
+            score = raw_score # TODO
+
+            score_list.append(score)
+
+        print(pfmon_color.magenta +  "Score list : ")
+        print(score_list)
+        print(pfmon_color.reset)
 
         return np.array(score_list)
 
@@ -234,7 +281,7 @@ class Genetic():
         for i in range(self.pop_size):
 
             task_clock_scores = []
-            cache_misses_scores = []
+            secondary_scores = []
 
             # Run one round of attack with corresponding parameters, store the system parameters in variable
             # Try ten times to remove the outliers produced by PMUs
@@ -256,7 +303,7 @@ class Genetic():
                 # Kill PolyRhythm process to restart the system status
                 kill_attack_proc()
 
-                print("Profiling : ", profilings)
+                # print("Profiling : ", profilings)
     
                 # Get scores
                 task_clock_score = profilings['task-clock']
@@ -295,6 +342,7 @@ class Genetic():
                 self.init_baseline_score()
             except:
                 # We are in a platform that some hardware events are not supported
+                print(pfmon_color.red + "Init baseline score failed." + pfmon_color.reset)
                 self.is_in_VM = True
                 try:
                     # print("\n\n************\nInitializing baseline score for VM\nIn VM", self.is_in_VM, "\n************\n\n")
@@ -316,6 +364,7 @@ class Genetic():
                     # print("\n\n************\nGetting fitness score, iter", itr, "\nIn VM", self.is_in_VM, "\n************\n\n")
                     pop_scores = self.get_fitness_score()
                 except:
+                    print(pfmon_color.red + "We are in a virtual machine environment" + pfmon_color.reset)
                     # We are in a platform that some hardware events are not supported
                     self.is_in_VM = True
 

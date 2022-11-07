@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
 ### May need to configure this path if test on other platform
-poly_rhythm_path = "/home/polyrhythm/PolyRhythm/build/polyrhythm"
-stessng_path = "/home/polyrhythm/tests/stress-ng/"
+poly_rhythm_path = "/home/pi/PolyRhythm/build/polyrhythm"
+stessng_path = "/home/pi/tests/stress-ng/"
 
 
 # For cahce, may use ./stress-ng --stream 1 --stream-ops 100 -e100 --metrics
-victim_tasks = { "cache": "/home/polyrhythm/tests/cortexsuite/vision/benchmarks/disparity/data/sqcif/disparity\
-                           /home/polyrhythm/tests/cortexsuite/vision/benchmarks/disparity/data/sqcif",
+victim_tasks = { "cache": "/home/pi/cortexsuite/vision/benchmarks/disparity/data/sqcif/disparity\
+                           /home/pi/cortexsuite/vision/benchmarks/disparity/data/sqcif",
                 #  "cache": "./stress-ng --stream 1 --stream-ops 1000  --metrics",
                  "network": stessng_path + "./stress-ng --udp 1 --udp-ops 50000 --metrics",
                  "row_buffer": stessng_path + "./stress-ng --stream 1 --stream-ops 50 --metrics",
