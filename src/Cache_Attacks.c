@@ -40,7 +40,6 @@ extern unsigned long int cache_exe_time;
 
 #define KB ((1) << 10)
 #define CACHE_LINE 64
-#define LLC_CACHE_SIZE 512 * KB  // 512 for pi3, 6144 for AMD
 
 /*
  * Global Variables
