@@ -28,6 +28,9 @@
 #include <stdlib.h>
 /* End of includes */
 
+/* Two access pattern */
+enum mbandwidth_pattern { pattern_read = 0, pattern_write };
+
 /* set the timer that triggers the tasks scheduling */
 struct sigaction sa;
 struct itimerval timer;
@@ -245,7 +248,7 @@ int disk_io_attack() {
 
 static int max_num_threads = 0;
 static int mem_ops_size = 0;
-static int paccess = 0;  // Write
+static int paccess = 0;  // Read
 static int log_flag = 0;
 
 void *data[2];  // create two virtual memory concurrently access the same
@@ -317,248 +320,273 @@ void stress_memory_bus_contention(void *data) {
         long start = get_current_time_us();
 
         for (i = 0; i < 1024; i++) {
-            vdata0[0] = (uint64_t)i;
-            vdata1[0] = (uint64_t)i;
-            vdata0[1] = (uint64_t)i;
-            vdata1[1] = (uint64_t)i;
-            vdata0[2] = (uint64_t)i;
-            vdata1[2] = (uint64_t)i;
-            vdata0[3] = (uint64_t)i;
-            vdata1[3] = (uint64_t)i;
-            vdata0[4] = (uint64_t)i;
-            vdata1[4] = (uint64_t)i;
-            vdata0[5] = (uint64_t)i;
-            vdata1[5] = (uint64_t)i;
-            vdata0[6] = (uint64_t)i;
-            vdata1[6] = (uint64_t)i;
-            vdata0[7] = (uint64_t)i;
-            vdata1[7] = (uint64_t)i;
-            read64(data0);
-            read64(data1);
+            if (paccess == pattern_write) {
+                vdata0[0] = (uint64_t)i;
+                vdata1[0] = (uint64_t)i;
+                vdata0[1] = (uint64_t)i;
+                vdata1[1] = (uint64_t)i;
+                vdata0[2] = (uint64_t)i;
+                vdata1[2] = (uint64_t)i;
+                vdata0[3] = (uint64_t)i;
+                vdata1[3] = (uint64_t)i;
+                vdata0[4] = (uint64_t)i;
+                vdata1[4] = (uint64_t)i;
+                vdata0[5] = (uint64_t)i;
+                vdata1[5] = (uint64_t)i;
+                vdata0[6] = (uint64_t)i;
+                vdata1[6] = (uint64_t)i;
+                vdata0[7] = (uint64_t)i;
+                vdata1[7] = (uint64_t)i;
+            } else if (paccess == pattern_read) {
+                read64(data0);
+                read64(data1);
+            } else {
+                printf("[Memory Bandwidth] Unknown Access Pattern\n");
+            }
         }
 #ifdef x86
 
         for (i = 0; i < 1024; i++) {
-            vdata0[0] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            asm volatile("" : : : "memory");
-            vdata1[0] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[1] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[1] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[2] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[2] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[3] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[3] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[4] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[4] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[5] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[5] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[6] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[6] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata0[7] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            vdata1[7] = (uint64_t)i;
-            asm volatile("mfence" : : : "memory");
-            read64(data0);
-            read64(data1);
-        }
-
-        for (i = 0; i < 1024; i++) {
-            vdata0[0] = (uint64_t)i;
-            vdata1[0] = (uint64_t)i;
-            vdata0[1] = (uint64_t)i;
-            vdata1[1] = (uint64_t)i;
-            vdata0[2] = (uint64_t)i;
-            vdata1[2] = (uint64_t)i;
-            vdata0[3] = (uint64_t)i;
-            vdata1[3] = (uint64_t)i;
-            vdata0[4] = (uint64_t)i;
-            vdata1[4] = (uint64_t)i;
-            vdata0[5] = (uint64_t)i;
-            vdata1[5] = (uint64_t)i;
-            vdata0[6] = (uint64_t)i;
-            vdata1[6] = (uint64_t)i;
-            vdata0[7] = (uint64_t)i;
-            vdata1[7] = (uint64_t)i;
-            asm volatile("clflush (%0)" ::"r"(data0) : "memory");
-            asm volatile("clflush (%0)" ::"r"(data1) : "memory");
-            read64(data0);
-            read64(data1);
-        }
-#endif
-        for (i = 0; i < 1024; i++) {
-            vdata0[0] = (uint64_t)i;
-            asm volatile("" : : : "memory");  // Add memory barrier to compiler
-            vdata1[0] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[1] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[1] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[2] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[2] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[3] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[3] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[4] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[4] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[5] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[5] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[6] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[6] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata0[7] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            vdata1[7] = (uint64_t)i;
-            asm volatile("" : : : "memory");
-            read64(data0);
-            read64(data1);
-        }
-
-        if (online_flag) {
-            long end = get_current_time_us();
-
-            timing += (end - start);
-
-            if (tmp_count == 8000) {
-                /* Calculate the least contended region */
-                if (last_timing == 0) {
-                    last_timing = timing;
-                    continue;
-                }
-
-                /* Check if the current if better than last */
-                if (on_new_memory_flag) {
-                    if (timing < last_timing) {
-                        online_profiling_memory_ops_switch_back();
-                    } else {
-                        /* We can re-allocate memory now */
-                        on_new_memory_flag = 0;
-                    }
-                } else { /* Re-allocate new memory */
-                    online_profiling_memory_ops_remap_memory();
-                }
-
-                last_timing = timing;
-                timing = 0;
-                tmp_count = 0;
+            if (paccess == pattern_write) {
+                vdata0[0] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                asm volatile("" : : : "memory");
+                vdata1[0] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[1] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[1] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[2] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[2] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[3] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[3] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[4] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[4] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[5] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[5] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[6] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[6] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata0[7] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+                vdata1[7] = (uint64_t)i;
+                asm volatile("mfence" : : : "memory");
+            } else if (paccess == pattern_read) {
+                read64(data0);
+                read64(data1);
             } else {
-                tmp_count++;
+                printf("[Memory Bandwidth] Unknown Access Pattern\n");
             }
         }
 
-    }  // End of while loop
-}
+        for (i = 0; i < 1024; i++) {
+            if (paccess == pattern_write) {
+                vdata0[0] = (uint64_t)i;
+                vdata1[0] = (uint64_t)i;
+                vdata0[1] = (uint64_t)i;
+                vdata1[1] = (uint64_t)i;
+                vdata0[2] = (uint64_t)i;
+                vdata1[2] = (uint64_t)i;
+                vdata0[3] = (uint64_t)i;
+                vdata1[3] = (uint64_t)i;
+                vdata0[4] = (uint64_t)i;
+                vdata1[4] = (uint64_t)i;
+                vdata0[5] = (uint64_t)i;
+                vdata1[5] = (uint64_t)i;
+                vdata0[6] = (uint64_t)i;
+                vdata1[6] = (uint64_t)i;
+                vdata0[7] = (uint64_t)i;
+                vdata1[7] = (uint64_t)i;
+                asm volatile("clflush (%0)" ::"r"(data0) : "memory");
+                asm volatile("clflush (%0)" ::"r"(data1) : "memory");
+                else if (paccess == pattern_read) {
+                    read64(data0);
+                    read64(data1);
+                }
+                else {
+                    printf("[Memory Bandwidth] Unknown Access Pattern\n");
+                }
+            }
+#endif
+            for (i = 0; i < 1024; i++) {
+                if (paccess == pattern_write) {
+                    vdata0[0] = (uint64_t)i;
+                    asm volatile(""
+                                 :
+                                 :
+                                 : "memory");  // Add memory barrier to compiler
+                    vdata1[0] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[1] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[1] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[2] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[2] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[3] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[3] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[4] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[4] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[5] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[5] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[6] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[6] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata0[7] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                    vdata1[7] = (uint64_t)i;
+                    asm volatile("" : : : "memory");
+                } else if (paccess == pattern_read) {
+                    read64(data0);
+                    read64(data1);
+                } else {
+                    printf("[Memory Bandwidth] Unknown Access Pattern\n");
+                }
+            }
 
-int init_memory_contention_attack(void *arguments) {
-    int *args = (int *)arguments;
-    /* Parse the parameters */
-    max_num_threads = args[0];
-    mem_ops_size = args[1] * LLC_CACHE_SIZE;
-    paccess = args[2];
-    // printf("Memory to allocate : %d MB \n", mem_ops_size / (1024 * 1024));
-    // the 4th parameter is the log flag by default
+            if (online_flag) {
+                long end = get_current_time_us();
 
-    online_flag = args[NUM_PARAMS];
+                timing += (end - start);
 
-    // printf("online flag : %d \n", online_flag);
-    return EXIT_SUCCESS;
-}
+                if (tmp_count == 8000) {
+                    /* Calculate the least contended region */
+                    if (last_timing == 0) {
+                        last_timing = timing;
+                        continue;
+                    }
 
-int memory_contention_attack() {
-    int i;
-    pthread_t pthreads[max_num_threads];
-    int ret[max_num_threads];
+                    /* Check if the current if better than last */
+                    if (on_new_memory_flag) {
+                        if (timing < last_timing) {
+                            online_profiling_memory_ops_switch_back();
+                        } else {
+                            /* We can re-allocate memory now */
+                            on_new_memory_flag = 0;
+                        }
+                    } else { /* Re-allocate new memory */
+                        online_profiling_memory_ops_remap_memory();
+                    }
 
-    char filename[] = {[41] = '\1'};
-    char content[] = {[128] = '\1'};  //  TO CHANGE
-    rand_str(filename, sizeof(filename) - 1);
-    rand_str(content, sizeof(content) - 1);
+                    last_timing = timing;
+                    timing = 0;
+                    tmp_count = 0;
+                } else {
+                    tmp_count++;
+                }
+            }
 
-    mfile = fopen(filename, "w+");
-    // printf("file name %s \n", filename);
+        }  // End of while loop
+    }
 
-    fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    rc = page_write_sync(fd, 4 * KB);
+    int init_memory_contention_attack(void *arguments) {
+        int *args = (int *)arguments;
+        /* Parse the parameters */
+        max_num_threads = args[0];
+        mem_ops_size = args[1] * LLC_CACHE_SIZE;
+        paccess = args[2];
+        // printf("Memory to allocate : %d MB \n", mem_ops_size / (1024 *
+        // 1024)); the 4th parameter is the log flag by default
 
-    /*
-     *  Get two different mappings of the same physical page
-     *  just to make things more interesting
+        online_flag = args[NUM_PARAMS];
+
+        // printf("online flag : %d \n", online_flag);
+        return EXIT_SUCCESS;
+    }
+
+    int memory_contention_attack() {
+        int i;
+        pthread_t pthreads[max_num_threads];
+        int ret[max_num_threads];
+
+        char filename[] = {[41] = '\1'};
+        char content[] = {[128] = '\1'};  //  TO CHANGE
+        rand_str(filename, sizeof(filename) - 1);
+        rand_str(content, sizeof(content) - 1);
+
+        mfile = fopen(filename, "w+");
+        // printf("file name %s \n", filename);
+
+        fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+        rc = page_write_sync(fd, 4 * KB);
+
+        /*
+         *  Get two different mappings of the same physical page
+         *  just to make things more interesting
+         */
+
+        // printf("Start mmap \n");
+        data[0] = mmap(NULL, mem_ops_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
+                       fd, 0);
+        if (data[0] == MAP_FAILED) {
+            printf("Memory contend [1]: mmap failed: errno=%d (%s)\n", errno,
+                   strerror(errno));
+            (void)close(fd);
+            return EXIT_FAILURE;
+        }
+
+        data[1] = mmap(NULL, mem_ops_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
+                       fd, 0);
+        if (data[1] == MAP_FAILED) {
+            printf("Memory contend [2]: mmap failed: errno=%d (%s)\n", errno,
+                   strerror(errno));
+            (void)munmap(data[0], mem_ops_size);
+            (void)close(fd);
+            return EXIT_FAILURE;
+        }
+        (void)close(fd);
+
+        for (i = 0; i < max_num_threads; i++) {
+            ret[i] =
+                pthread_create(&pthreads[i], NULL,
+                               (void *)stress_memory_bus_contention, &data);
+        }
+
+        pthread_join(pthreads[0], NULL);
+        return EXIT_SUCCESS;
+    }
+
+    /********************************************
+     * Parameters for context switch attack *****
+     *
+     * Implements a context switching attack
+     * If run by a high-priority attacker with utilization constrained,
+     * it should induce a large number of context switches in the victim
+     *
+     * Sets a timer for length DURATION,
+     * which suspends the attacking thread for that amount of time
+     *
+     * This forces rapid context switching between attacker and victim
+     * without using much of the attacker's given bandwidth/utilization
+     *
+     * ******************************************
      */
 
-    // printf("Start mmap \n");
-    data[0] =
-        mmap(NULL, mem_ops_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-    if (data[0] == MAP_FAILED) {
-        printf("Memory contend [1]: mmap failed: errno=%d (%s)\n", errno,
-               strerror(errno));
-        (void)close(fd);
-        return EXIT_FAILURE;
+    static int context_switch_duration;
+
+    int context_switch_attack() {
+        while (context_switch_flag) {
+            if (usleep(context_switch_duration)) return EXIT_FAILURE;
+        }
+
+        return EXIT_SUCCESS;
     }
-
-    data[1] =
-        mmap(NULL, mem_ops_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-    if (data[1] == MAP_FAILED) {
-        printf("Memory contend [2]: mmap failed: errno=%d (%s)\n", errno,
-               strerror(errno));
-        (void)munmap(data[0], mem_ops_size);
-        (void)close(fd);
-        return EXIT_FAILURE;
-    }
-    (void)close(fd);
-
-    for (i = 0; i < max_num_threads; i++) {
-        ret[i] = pthread_create(&pthreads[i], NULL,
-                                (void *)stress_memory_bus_contention, &data);
-    }
-
-    pthread_join(pthreads[0], NULL);
-    return EXIT_SUCCESS;
-}
-
-/********************************************
- * Parameters for context switch attack *****
- *
- * Implements a context switching attack
- * If run by a high-priority attacker with utilization constrained,
- * it should induce a large number of context switches in the victim
- *
- * Sets a timer for length DURATION,
- * which suspends the attacking thread for that amount of time
- *
- * This forces rapid context switching between attacker and victim
- * without using much of the attacker's given bandwidth/utilization
- *
- * ******************************************
- */
-
-static int context_switch_duration;
-
-int context_switch_attack() {
-    while (context_switch_flag) {
-        if (usleep(context_switch_duration)) return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
