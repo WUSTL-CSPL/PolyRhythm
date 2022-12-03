@@ -86,6 +86,12 @@ if __name__ == "__main__":
 
     if args.perfname is not None:
         global_params.perf_bin = args.perfname
+
+    if args.ncores is not None:
+        global_params.ncores = int(args.ncores)
+        if global_params.ncores < 1 :
+            print("Specified --ncores", args.ncores, "is not valid!")
+            exit()
     
     params_file = None
     if args.params is not None:
