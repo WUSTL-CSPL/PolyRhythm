@@ -131,6 +131,8 @@ int filesys_attack();
 
 /* Thread spawning attack */
 
+int init_spawn_attack();
+
 int spawn_attack();
 
 /* Currently, this function is not implemented,

@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(iter->name, "spawn") == 0) {
             spawn_num_threads = iter->num_threads;
             total_num_threads += iter->num_threads;
-            
+            init_spawn_attack(&iter->attack_paras);
         } else if (strcmp(iter->name, "memory") == 0) {
             init_memory_contention_attack(&iter->attack_paras);
             mem_ops_num_threads = iter->num_threads;

