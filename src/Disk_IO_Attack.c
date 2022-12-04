@@ -27,7 +27,7 @@ extern struct action *shared_memory_action;
  */
 
 /* Two access pattern */
-enum io_pattern { pattern_sequential, pattern_random };
+enum io_pattern { pattern_sequential = 0, pattern_random };
 
 extern unsigned long int diskio_contention_count;
 
@@ -52,9 +52,11 @@ static int fd;  // File descriptor
  */
 int init_advise_disk_io_attack(void *arguments) {
     int *args = (int *)arguments;
+    int posix_advise_pattern = 1;
     num_pages = args[0];  // pages
     disk_content_size = args[1];
     stride = args[2];
+    adivse = args[3];
 
     // Set file size
     filesize = num_pages * PAGE_SIZE;
@@ -68,6 +70,8 @@ int init_advise_disk_io_attack(void *arguments) {
     /* Fill the packet with data */
     rand_str(content, disk_content_size);
 
+    // Convert to posix pattern
+    posix_advise_pattern = adivse + 1;
     // Create and open file
     fd = -1;
     while (fd < 0) {
@@ -80,10 +84,9 @@ int init_advise_disk_io_attack(void *arguments) {
 
     // Set page cache advice, POSIX_FADV_RANDOM is probably best
 
-    // if(posix_fadvise(fd, 0, 0, advice)) {
     if (posix_fadvise(
             fd, 0, 0,
-            POSIX_FADV_RANDOM)) {  // Currently set to POSIX_FADV_RANDOM
+            posix_advise_pattern)) {  // Currently set to POSIX_FADV_RANDOM
         printf("Disk IO Attack failed to set fadvise, errno=%d (%s)\n", errno,
                strerror(errno));
         return EXIT_FAILURE;
