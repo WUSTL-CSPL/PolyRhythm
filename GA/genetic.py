@@ -66,7 +66,7 @@ def mutate_pop(pop, mutation_p, noise_stdev, elite_pop):
     return new_pop
 
 class Genetic():
-    def __init__(self, channel, init_param, ncores = 4, is_param1_fixed = False, is_param2_fixed = False, perf_name='perf', weight_mode=2):
+    def __init__(self, channel, init_param, ncores = 4, weight_mode=WeightMode.SENSITIVITY, is_param1_fixed = False, is_param2_fixed = False):
         self.pop_size = 10                                 # total population size in each round 
         self.elite_size = 10                               # elite population size in each round
         self.mutation_p = 0.01                             # mutation probability
@@ -105,11 +105,8 @@ class Genetic():
         self.baseline_primary_score = 1
         self.baseline_secondary_score = 1
 
-        self.weight_mode = WeightMode.SENSITIVITY
-        # self.weight_mode = weight_mode
+        self.weight_mode = weight_mode
         
-        set_perf_binary_name(perf_name)                     # Some platform have different perf versions
-
 
 
     def init_baseline_score(self):

@@ -22,11 +22,11 @@ def signal_handler(sig, frame):
     print("PolyRhythm Killed.")
     sys.exit(0)
 
-def run_channel(channel, params_file = None):
+def run_channel(channel, _ncores, params_file = None, _weightmode):
     init_param = np.array(init_params[channel])
 
     ### Init Genetic Algorithm
-    g = Genetic(channel, init_param, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
+    g = Genetic(channel, init_param, ncores=_ncores, weightmode=_weightmode, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
 
     ### Open log file to store optimal parameters 
     log_file = channel + "run_log.txt"
@@ -84,9 +84,7 @@ if __name__ == "__main__":
     fix_p1 = False ## Parse these two arguments from command line
     fix_p2 = False
 
-    if args.perfname is not None:
-        global_params.perf_bin = args.perfname
-
+    ncores = 4
     if args.ncores is not None:
         global_params.ncores = int(args.ncores)
         if global_params.ncores < 1 :
@@ -97,10 +95,23 @@ if __name__ == "__main__":
     if args.params is not None:
         params_file = open(args.params, 'w')
         if params_file is None:
-            print("Could not open", args.params, "for writing")        
+            print("Could not open", args.params, "for writing") 
+
+    if args.perfname is not None:
+        global_params.perf_bin = args.perfname
+
+    weightmode = WeightMode.VARIATION
+    if args.weightmode is not None:
+        if args.weightmode == 1:
+            weightmode = WeightMode.VARIATION
+        elif args.weightmode == 2:
+            weightmode = WeightMode.SENSITIVITY
+        else:
+            print("weightmode must be 1 or 2")
+            exit()
 
     if args.channel is not None:       
-        run_channel(args.channel, params_file)
+        run_channel(args.channel, ncores, params_file, weightmode)
     else: ### We automatically tune all channels
         for channel in init_params:
-            run_channel(channel, params_file)
+            run_channel(channel, ncores, params_file, weightmode)

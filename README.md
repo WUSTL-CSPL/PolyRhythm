@@ -235,7 +235,7 @@ This tunes each primitive independently. The GA takes the additional arguments:
 * `--ncores`: The number of cores on the target system. Defaults to 4. Launches one victim thread, then `ncores-1` attacker instances.
 * `--params`: Outputs parameters to the given filename. Values are then used by the dynamic RL-based online attack.
 * `--perfname`: The binary name for the `perf` command on the target system. Defaults to "perf"
-* `--weightmode`: The scheme for assigning relative weights to each performance event that contributes to the interference potential of a given attack primitive. 1: assigns weights according to the stability of the event. 2: assigns weights according to the relative impact of the primitive on each event. More details can be found in the paper.
+* `--weightmode`: The scheme for assigning relative weights to each performance event that contributes to the interference potential of a given attack primitive. 1 (default): assigns weights according to the stability of the event. 2: assigns weights according to the relative impact of the primitive on each event. More details can be found in the paper.
 
 *Note*: On real hardware, we suggest disabling frequency scaling on the target platform, which reduces noise in measured performance event counts. In a virtual environment where other performance counters are unavailable, PolyRhythm will fall back to profiling the `task-clock` event.
 
