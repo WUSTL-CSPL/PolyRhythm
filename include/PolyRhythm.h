@@ -46,13 +46,13 @@ typedef unsigned long long int ul;
 /* Attack Channels */
 #define CLASS_CACHE 0   /* CPU cache */
 #define CLASS_NETWORK 1 /* Network, sockets, etc */
-#define CLASS_MEMORY 2  /* Memory thrashers */
+#define CLASS_ROW_BUFFER 2  /* DRAM row buffer attack */
 #define CLASS_DISK_IO 3 /* Disk I/O read/writes etc */
 // #define CLASS_IO 4            /* I/O read/writes etc */
 #define CLASS_TLB 5           /* Translation Lookaside Buffer */
 #define CLASS_VM 6            /* VM stress, big memory, swapping */
 #define CLASS_INTERRUPT 7     /* interrupt floods */
-#define CLASS_OS 8            /* generic OS tests */
+#define CLASS_MEMORY 8            /* memory bandwidth */
 #define CLASS_PIPE_IO 9       /* pipe I/O */
 #define CLASS_FILESYSTEM 10   /* file system */
 #define CLASS_DEV 11          /* device (null, zero, etc) */

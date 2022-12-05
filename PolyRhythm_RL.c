@@ -40,14 +40,10 @@ static attack_channel_info_t attack_channels[] = {
     {CLASS_TLB, "tlb", 0, tlb_attack, {500, 1, 1, 0, 0}},
     {CLASS_FILESYSTEM, "filesystem", 0, filesys_attack, {1, 1, 1, 0, 0}},
     {CLASS_INTERRUPT, "interrupt", 0, cache_attack, {1, 1, 1, 0, 0}},
-    {CLASS_DISK_IO,
-     "adv_disk_io",
-     0,
-     advise_disk_io_attack,
-     {50, 56223, 1, 0, 0}},
-    {CLASS_MEMORY, "memory", 0, memory_row_buffer_attack, {1, 10, 1, 0, 0}},
+    {CLASS_DISK_IO, "disk_io", 0, advise_disk_io_attack, {50, 56223, 1, 0, 0}},
+    {CLASS_ROW_BUFFER, "row_buffer", 0, memory_row_buffer_attack, {1, 10, 1, 0, 0}},
     {CLASS_NETWORK, "network", 0, stress_udp_flood, {65333, 2, 1, 0, 0}},
-    {CLASS_OS, "memory_ops", 0, memory_contention_attack, {1, 1, 1, 0, 0}},
+    {CLASS_MEMORY, "memory", 0, memory_contention_attack, {1, 1, 1, 0, 0}},
     {CLASS_SCHEDULER, "scheduler", 0, cache_attack, {1, 1, 1, 0, 0}},
     {CLASS_SPAWN, "spawn", 0, spawn_attack, {1, 1, 1, 0, 0}},
     {CLASS_PTR_CHASING, "ptr_chasing", 0, pointer_chasing, {1, 1, 1, 0, 0}},
@@ -144,7 +140,7 @@ void action_to_num_threads(int action) {
         case CLASS_NETWORK:  // == 1
             network_num_threads++;
             break;
-        case CLASS_MEMORY:  // == 2
+        case CLASS_ROW_BUFFER:  // == 2
             row_buffer_num_threads++;
             break;
         case CLASS_DISK_IO:  // == 3
@@ -467,7 +463,7 @@ int init_all_attack_channels() {
             init_udp_attack(&iter->attack_paras);
             network_num_threads = iter->num_threads;
             // printf("network attacks\n");
-        } else if (strcmp(iter->name, "memory") == 0) {
+        } else if (strcmp(iter->name, "row_buffer") == 0) {
             init_memory_row_buffer_attack(&iter->attack_paras);
             row_buffer_num_threads = iter->num_threads;
             // printf("init row buffer attacks\n");
@@ -476,10 +472,10 @@ int init_all_attack_channels() {
             tlb_num_threads = iter->num_threads;
         } else if (strcmp(iter->name, "spawn") == 0) {
             spawn_num_threads = iter->num_threads;
-        } else if (strcmp(iter->name, "memory_ops") == 0) {
+        } else if (strcmp(iter->name, "memory") == 0) {
             init_memory_contention_attack(&iter->attack_paras);
             mem_ops_num_threads = iter->num_threads;
-        } else if (strcmp(iter->name, "adv_disk_io") == 0) {
+        } else if (strcmp(iter->name, "disk_io") == 0) {
             init_advise_disk_io_attack(&iter->attack_paras);
             advise_disk_num_threads = iter->num_threads;
         }
@@ -570,7 +566,7 @@ int read_channel_params(FILE *params) {
     }
 
     if (null_token) {
-        printf("The following line does not define 3 parameters!\n%s\n", line);
+        printf("The following line does not define %d parameters!\n%s\n", NUM_PARAMS+1, line);
         return EXIT_FAILURE;
     }
 
