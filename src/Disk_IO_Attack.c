@@ -52,7 +52,7 @@ static int fd;  // File descriptor
  */
 int init_advise_disk_io_attack(void *arguments) {
     int *args = (int *)arguments;
-    int posix_advise_pattern = 1;
+    int posix_advise_pattern = POSIX_FADV_RANDOM;
     num_pages = args[0];  // pages
     disk_content_size = args[1];
     stride = args[2];
@@ -71,7 +71,7 @@ int init_advise_disk_io_attack(void *arguments) {
     rand_str(content, disk_content_size);
 
     // Convert to posix pattern
-    posix_advise_pattern = adivse + 1;
+    // posix_advise_pattern = adivse + 1;
     // Create and open file
     fd = -1;
     while (fd < 0) {

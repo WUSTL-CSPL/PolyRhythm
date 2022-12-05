@@ -174,7 +174,6 @@ int filesys_attack() {
  * ***********************************
  */
 
-#define MAX_THREAD 10000  // TO FIX
 #define PATH_MAX 4096     /* # chars in a path name including nul */
 
 int max_THREAD = 0;
