@@ -296,7 +296,7 @@ The script that runs the model must be run concurrently with the attack binaries
         
 ## Real-Time Launcher
 
-__Overview__
+### Overview
 
 We provide a special launcher program in `~/PolyRhythm/rt-launcher.c`. The binary is compiled with PolyRhythm as part of the CMake build process.
 
@@ -304,7 +304,7 @@ The launcher is used to run multiple instances of multiple programs, which can b
 
 It synchronizes all instances by performing all scheduling-related assignments in the parent process while children wait to proceed by reading from a pipe. Once all setup has completed, the parent writes sufficient bytes to the pipe to allow the children to proceed and exec the specified commands.
 
-__Command-Line__
+### Command-Line
 
 The command-line argument structure looks like this:
 
@@ -332,7 +332,7 @@ In this case, runtime is set to period * utilization
 
 If `<core>` is -1, then no core pinning is used. Otherwise, the specified core is pinned.
 
-__Behavior__
+### Behavior
 
 The launcher forks all children, which wait on a pipe to proceed. It sets their core affinity and scheduling attributes as needed. Once all children are launched, the launcher sets itself to the highest priority:
 
@@ -345,7 +345,7 @@ It then writes a number of bytes to the pipe equal to the number of children. Th
 ```kill -9 -<pgid>```
 
 
-__Example__
+### Example
 
     ./launcher 3 \
         1 f 10 1 slam -1 \
