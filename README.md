@@ -294,7 +294,7 @@ The script that runs the model must be run concurrently with the attack binaries
 
     $ python3 RL_DDPG/attack_main.py
         
-## Launcher
+## Real-Time Launcher
 
 __Overview__
 
