@@ -22,11 +22,11 @@ def signal_handler(sig, frame):
     print("PolyRhythm Killed.")
     sys.exit(0)
 
-def run_channel(channel, _ncores, params_file = None, _weightmode):
+def run_channel(channel, _ncores = 4, params_file = None, weightmode = 1):
     init_param = np.array(init_params[channel])
 
     ### Init Genetic Algorithm
-    g = Genetic(channel, init_param, ncores=_ncores, weightmode=_weightmode, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
+    g = Genetic(channel, init_param, ncores=_ncores, weight_mode=weightmode, is_param1_fixed = fix_p1, is_param2_fixed = fix_p2)
 
     ### Open log file to store optimal parameters 
     log_file = channel + "run_log.txt"
