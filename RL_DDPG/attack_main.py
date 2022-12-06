@@ -5,15 +5,15 @@ import sys
 import threading
 import time
 
-sys.path.append("/home/polyrhythm/PolyRhythm/RL_DDPG/")
-sys.path.append("/home/polyrhythm/PolyRhythm/RL_DDPG/C-extension")
+sys.path.append("../RL_DDPG/")
+sys.path.append("C-extension/")
 
 from env import Environment
 from ddpg import DDPG
 import shmextension
 
 # change this to the location of the checkpoint file
-CHECKPOINT_FILE = '/home/polyrhythm/PolyRhythm/RL_DDPG/checkpoints/manipulator/checkpoint.pth.tar'
+CHECKPOINT_FILE = 'checkpoints/manipulator/checkpoint.pth.tar'
 
 next_time = None
 

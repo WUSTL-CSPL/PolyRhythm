@@ -11,7 +11,7 @@ import subprocess
 import threading
 
 
-sys.path.append("/home/polyrhythm/PolyRhythm/RL_DDPG/C-extension/")
+sys.path.append("C-extension/")
 
 import shmextension 
 
@@ -69,12 +69,12 @@ def wait_for_action(conn):
 
 if __name__ == "__main__":
 
-    poly_rhythm_path = '/home/polyrhythm/PolyRhythm/build/rl'
+    poly_rhythm_path = '../build/rl'
     # subprocess.Popen([poly_rhythm_path,"cache","1", "1", "16384", "0", "0"])
-    subprocess.Popen([poly_rhythm_path, '-w', '-P', '/home/polyrhythm/PolyRhythm/params.txt'])
-    subprocess.Popen([poly_rhythm_path, '-P', '/home/polyrhythm/PolyRhythm/params.txt'])
-    subprocess.Popen([poly_rhythm_path, '-P', '/home/polyrhythm/PolyRhythm/params.txt'])
-    subprocess.Popen([poly_rhythm_path, '-P', '/home/polyrhythm/PolyRhythm/params.txt'])
+    subprocess.Popen([poly_rhythm_path, '-w', '-P', '../params.txt'])
+    subprocess.Popen([poly_rhythm_path, '-P', '../params.txt'])
+    subprocess.Popen([poly_rhythm_path, '-P', '../params.txt'])
+    subprocess.Popen([poly_rhythm_path, '-P', '../params.txt'])
 
     while True:
         try:

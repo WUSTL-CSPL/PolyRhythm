@@ -8,7 +8,7 @@ import time
 
 import sys
 
-sys.path.append("/home/polyrhythm/PolyRhythm/RL_DDPG/C-extension/")
+sys.path.append("C-extension/")
 import shmextension
 
 NUM_RESOURCES = 5
