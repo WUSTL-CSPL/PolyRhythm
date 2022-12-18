@@ -435,11 +435,10 @@ int online_profiling_stress_udp_flood() {
     /* UDP Profiling Loop */
     int tmp_port_count = 0;
     int tmp_domain_count = 0;
-    int size_of_domains = sizeof(domains)/sizeof(domain_t);
+    int size_of_domains = sizeof(domains) / sizeof(domain_t);
 
     printf("Online loop \n");
     printf("Number of opened ports: %d \n", num_open_ports);
-
 
     // udp_flag enables/disables the udp attack loop
     while (udp_flag) {
@@ -464,69 +463,65 @@ int online_profiling_stress_udp_flood() {
         /* Count the network loop, less count means more cache contention */
         network_contention_count++;
 
-
         // We first profile ports. Once all ports are done, we swtich to domains
         if (iteration_count < (num_open_ports - 1)) {
-
-        /* Calculate the least contended port */
-        if (tmp_port_count >= TIMES_PORT_CHANGE)  // This number may be changed
-        {
-
-            printf("Port loop \n");
-
-            contention_counts_ports[current_port_index] =
-                network_contention_count;
-
-            online_profiling_udp_remap_port(++current_port_index);
-
-            network_contention_count = 0;
-            tmp_port_count = 0;
-        } else {
-            tmp_port_count++;
-        }
-        }
-
-        else if(iteration_count < num_open_ports + size_of_domains) {
-        // All domains should be iterated
-        /* Calculate the least contended domain */
-        if (tmp_domain_count >= TIMES_DOMAIN_CHANGE)  // This number may be changed
-        {
-            /* For domain contention */
-            contention_counts_domains[current_domain_index] =
-            network_contention_count;
-
-            printf("Switching domains \n");
-
-
-            if (current_domain_index == 0)
+            /* Calculate the least contended port */
+            if (tmp_port_count >=
+                TIMES_PORT_CHANGE)  // This number may be changed
             {
-                // Switch to UNIX domain
-                // init_unix_domain();
-                current_domain_index++;
+                printf("Port loop \n");
 
-                if (current_domain_index == 1) { // Now this is unix domain
-                    iteration_count++;
-                    continue;
+                contention_counts_ports[current_port_index] =
+                    network_contention_count;
+
+                online_profiling_udp_remap_port(++current_port_index);
+
+                network_contention_count = 0;
+                tmp_port_count = 0;
+            } else {
+                tmp_port_count++;
+            }
+        }
+
+        else if (iteration_count < num_open_ports + size_of_domains) {
+            // All domains should be iterated
+            /* Calculate the least contended domain */
+            if (tmp_domain_count >=
+                TIMES_DOMAIN_CHANGE)  // This number may be changed
+            {
+                /* For domain contention */
+                contention_counts_domains[current_domain_index] =
+                    network_contention_count;
+
+                printf("Switching domains \n");
+
+                if (current_domain_index == 0) {
+                    // Switch to UNIX domain
+                    // init_unix_domain();
+                    current_domain_index++;
+
+                    if (current_domain_index == 1) {  // Now this is unix domain
+                        iteration_count++;
+                        continue;
+                    }
+                    online_profiling_udp_remap_domain(current_domain_index);
+
+                } else {
+                    current_domain_index = 0;  // reset to AF_INET
                 }
-                online_profiling_udp_remap_domain(current_domain_index);
+
+                network_contention_count = 0;
+                tmp_domain_count = 0;
 
             } else {
-                current_domain_index = 0; // reset to AF_INET
+                tmp_domain_count++;
             }
 
-            network_contention_count = 0;
-            tmp_domain_count = 0;
-
         } else {
-            tmp_domain_count++;
-        }
-
-        }
-        else {
             printf("Profiling done \n");
-        /* Once the remap times reach the maximum number
-         * jump to the attack loop without any time recording
-         */
+            /* Once the remap times reach the maximum number
+             * jump to the attack loop without any time recording
+             */
             /* Find the most effective domain */
             int k;
             unsigned long int min_count = contention_counts_ports[0];
@@ -581,11 +576,11 @@ af_inet:
 af_unix:
 
     printf("Entering AF_UNIX Attack Loop.\n");
-    
+
     while (udp_flag) {
         if (write(s_unix_sender, packet_content, packet_size) == -1) {
-                printf("Unix UDP attack sendto error %i. \n", errno);
-                return EXIT_FAILURE;
+            printf("Unix UDP attack sendto error %i. \n", errno);
+            return EXIT_FAILURE;
         }
 
         /* Count the network loop, less count means more cache contention */
